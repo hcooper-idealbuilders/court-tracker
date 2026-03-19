@@ -95,13 +95,10 @@ function fmtDateTime(iso) {
     + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-/* ── Notes popup ─────────────────────────────────────────────── */
-
-const popup = document.createElement('div');
-popup.className = 'notes-popup';
-document.body.appendChild(popup);
+/* ── Notes hover expand ───────────────────────────────────────── */
 
 let popupEntryId   = null;
+let popupWrap      = null;
 let popupShowTimer = null;
 let popupHideTimer = null;
 
@@ -110,27 +107,23 @@ function showPopup(card, entry) {
   clearTimeout(popupHideTimer);
   popupShowTimer = setTimeout(() => {
     popupEntryId = entry.id;
-    populateNotesView(popup, entry);
-    const rect = card.getBoundingClientRect();
-    popup.style.top    = Math.max(44, Math.min(rect.top, window.innerHeight - 200)) + 'px';
-    popup.style.bottom = 'auto';
-    popup.classList.add('visible');
+    popupWrap    = card.querySelector('.notes-wrap');
+    const view   = card.querySelector('.notes-view');
+    if (view) populateNotesView(view, entry);
+    if (popupWrap) popupWrap.classList.add('viewing');
   }, 150);
 }
 
 function hidePopup() {
   clearTimeout(popupShowTimer);
   popupHideTimer = setTimeout(() => {
-    popup.classList.remove('visible');
+    if (popupWrap && !popupWrap.classList.contains('editing')) {
+      popupWrap.classList.remove('viewing');
+    }
+    popupWrap    = null;
     popupEntryId = null;
   }, 80);
 }
-
-popup.addEventListener('mouseenter', () => {
-  clearTimeout(popupShowTimer);
-  clearTimeout(popupHideTimer);
-});
-popup.addEventListener('mouseleave', hidePopup);
 
 /* ── Persistence ──────────────────────────────────────────────── */
 
@@ -209,7 +202,10 @@ function setNotes(id, val) {
   save();
   const btn = document.querySelector(`.btn-notes[data-id="${id}"]`);
   if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
-  if (popupEntryId === id) populateNotesView(popup, entry);
+  if (popupEntryId === id) {
+    const view = document.getElementById(`nv-${id}`);
+    if (view) populateNotesView(view, entry);
+  }
 }
 
 function setPriority(id, val) {
@@ -301,6 +297,11 @@ function buildEntry(e) {
   const inner = document.createElement('div');
   inner.className = 'notes-inner';
 
+  // Read-only view — shown on hover
+  const view = document.createElement('div');
+  view.className = 'notes-view';
+  view.id = `nv-${e.id}`;
+
   // Editable textarea — shown only when ✎ is clicked
   const ta = document.createElement('textarea');
   ta.className = 'notes-ta';
@@ -309,7 +310,7 @@ function buildEntry(e) {
 
   // Priority row inside the editing area
   const editPrioRow = document.createElement('div');
-  editPrioRow.className = 'notes-priority-row';
+  editPrioRow.className = 'notes-priority-row notes-edit-prio';
   [
     { val: 'red',    title: 'Urgent' },
     { val: 'yellow', title: 'Medium' },
@@ -328,7 +329,7 @@ function buildEntry(e) {
     editPrioRow.appendChild(btn);
   });
 
-  inner.append(ta, editPrioRow);
+  inner.append(view, ta, editPrioRow);
   wrap.appendChild(inner);
   card.append(row, wrap);
 
