@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <title>Court Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="titlebar">
+    <div class="titlebar-brand">
+      <img class="brand-icon" src="assets/icon.png" alt="Court Tracker" />
+      <span class="brand-name">Court Tracker</span>
+    </div>
+    <button id="btnClose" class="btn-close" title="Close">✕</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <div class="footer">
+    <button id="btnAdd" class="btn-add">+ Add Entry</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

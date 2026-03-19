@@ -1,0 +1,13 @@
+{
+  "name": "court-tracker",
+  "version": "1.0.0",
+  "description": "System tray app — track whose court the ball is in",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "node scripts/create-icon.js",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}
