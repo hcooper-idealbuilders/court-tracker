@@ -95,35 +95,6 @@ function fmtDateTime(iso) {
     + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-/* ── Notes hover expand ───────────────────────────────────────── */
-
-let popupEntryId   = null;
-let popupWrap      = null;
-let popupShowTimer = null;
-let popupHideTimer = null;
-
-function showPopup(card, entry) {
-  clearTimeout(popupShowTimer);
-  clearTimeout(popupHideTimer);
-  popupShowTimer = setTimeout(() => {
-    popupEntryId = entry.id;
-    popupWrap    = card.querySelector('.notes-wrap');
-    const view   = card.querySelector('.notes-view');
-    if (view) populateNotesView(view, entry);
-    if (popupWrap) popupWrap.classList.add('viewing');
-  }, 150);
-}
-
-function hidePopup() {
-  clearTimeout(popupShowTimer);
-  popupHideTimer = setTimeout(() => {
-    if (popupWrap && !popupWrap.classList.contains('editing')) {
-      popupWrap.classList.remove('viewing');
-    }
-    popupWrap    = null;
-    popupEntryId = null;
-  }, 80);
-}
 
 /* ── Persistence ──────────────────────────────────────────────── */
 
@@ -202,10 +173,6 @@ function setNotes(id, val) {
   save();
   const btn = document.querySelector(`.btn-notes[data-id="${id}"]`);
   if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
-  if (popupEntryId === id) {
-    const view = document.getElementById(`nv-${id}`);
-    if (view) populateNotesView(view, entry);
-  }
 }
 
 function setPriority(id, val) {
@@ -213,7 +180,6 @@ function setPriority(id, val) {
   if (!entry) return;
   entry.priority = val;
   save();
-  hidePopup();
   render();
 }
 
@@ -355,15 +321,19 @@ function buildEntry(e) {
     w.classList.remove('editing');
   });
 
-  // Hover: show notes popup
+  // Hover: expand notes view
   card.addEventListener('mouseenter', () => {
     const w = document.getElementById(`nw-${e.id}`);
-    if (!w.classList.contains('editing')) {
-      const entry = data.entries.find(x => x.id === e.id);
-      if (entry) showPopup(card, entry);
+    const entry = data.entries.find(x => x.id === e.id);
+    if (!w.classList.contains('editing') && entry?.notes?.trim()) {
+      populateNotesView(view, entry);
+      w.classList.add('viewing');
     }
   });
-  card.addEventListener('mouseleave', hidePopup);
+  card.addEventListener('mouseleave', () => {
+    const w = document.getElementById(`nw-${e.id}`);
+    if (!w.classList.contains('editing')) w.classList.remove('viewing');
+  });
 
   return card;
 }
@@ -372,6 +342,8 @@ function buildEntry(e) {
 
 document.getElementById('btnClose').addEventListener('click', () => window.api.hideWin());
 document.getElementById('btnAdd').addEventListener('click', addEntry);
-document.getElementById('list').addEventListener('scroll', hidePopup, { passive: true });
+document.getElementById('list').addEventListener('scroll', () => {
+  document.querySelectorAll('.notes-wrap.viewing').forEach(w => w.classList.remove('viewing'));
+}, { passive: true });
 
 load();
