@@ -38,25 +38,6 @@ function populateNotesView(el, entry) {
     el.appendChild(content);
   }
 
-  // Priority selector
-  const prioRow = document.createElement('div');
-  prioRow.className = 'notes-priority-row';
-  [
-    { val: 'red',    title: 'Urgent' },
-    { val: 'yellow', title: 'Medium' },
-    { val: 'green',  title: 'Low'    },
-  ].forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = `notes-priority-btn prio-${p.val}${entry.priority === p.val ? ' active' : ''}`;
-    btn.title = p.title;
-    btn.addEventListener('click', ev => {
-      ev.stopPropagation();
-      setPriority(entry.id, entry.priority === p.val ? null : p.val);
-    });
-    prioRow.appendChild(btn);
-  });
-  el.appendChild(prioRow);
-
   // Timestamp footer
   if (entry.notesEditedAt) {
     const sep = document.createElement('div');
