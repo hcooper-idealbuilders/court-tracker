@@ -112,16 +112,8 @@ function showPopup(card, entry) {
     popupEntryId = entry.id;
     populateNotesView(popup, entry);
     const rect = card.getBoundingClientRect();
-    popup.style.width  = rect.width + 'px';
-    popup.style.left   = rect.left  + 'px';
-    const below = rect.bottom + 6;
-    if (below + 160 < window.innerHeight) {
-      popup.style.top    = below + 'px';
-      popup.style.bottom = 'auto';
-    } else {
-      popup.style.top    = 'auto';
-      popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-    }
+    popup.style.top    = Math.max(44, Math.min(rect.top, window.innerHeight - 200)) + 'px';
+    popup.style.bottom = 'auto';
     popup.classList.add('visible');
   }, 150);
 }
@@ -315,7 +307,28 @@ function buildEntry(e) {
   ta.placeholder = 'Notes for this entry…';
   ta.value = e.notes || '';
 
-  inner.append(ta);
+  // Priority row inside the editing area
+  const editPrioRow = document.createElement('div');
+  editPrioRow.className = 'notes-priority-row';
+  [
+    { val: 'red',    title: 'Urgent' },
+    { val: 'yellow', title: 'Medium' },
+    { val: 'green',  title: 'Low'    },
+  ].forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = `notes-priority-btn prio-${p.val}${e.priority === p.val ? ' active' : ''}`;
+    btn.title = p.title;
+    btn.addEventListener('click', ev => {
+      ev.preventDefault();
+      const entry = data.entries.find(x => x.id === e.id);
+      if (!entry) return;
+      setNotes(e.id, ta.value);   // flush textarea before re-render
+      setPriority(e.id, entry.priority === p.val ? null : p.val);
+    });
+    editPrioRow.appendChild(btn);
+  });
+
+  inner.append(ta, editPrioRow);
   wrap.appendChild(inner);
   card.append(row, wrap);
 
