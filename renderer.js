@@ -154,6 +154,8 @@ function setNotes(id, val) {
   save();
   const btn = document.querySelector(`.btn-notes[data-id="${id}"]`);
   if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
+  const view = document.getElementById(`nv-${id}`);
+  if (view) populateNotesView(view, entry);
 }
 
 function setPriority(id, val) {
@@ -172,19 +174,6 @@ function updateLabelDim(id, court) {
   if (rightInp) rightInp.classList.toggle('inactive', court === 'left');
 }
 
-// After the expand animation settles, scroll the list just enough to
-// reveal the full wrap if it overflowed the bottom of the container.
-function scrollWrapIntoView(w) {
-  setTimeout(() => {
-    if (!w.classList.contains('viewing') && !w.classList.contains('editing')) return;
-    const list  = document.getElementById('list');
-    const wRect = w.getBoundingClientRect();
-    const lRect = list.getBoundingClientRect();
-    if (wRect.bottom > lRect.bottom) {
-      list.scrollBy({ top: wRect.bottom - lRect.bottom + 8, behavior: 'smooth' });
-    }
-  }, 240);
-}
 
 /* ── Rendering ────────────────────────────────────────────────── */
 
@@ -262,6 +251,7 @@ function buildEntry(e) {
   const view = document.createElement('div');
   view.className = 'notes-view';
   view.id = `nv-${e.id}`;
+  populateNotesView(view, e);
 
   // Editable textarea — shown only when ✎ is clicked
   const ta = document.createElement('textarea');
@@ -304,7 +294,6 @@ function buildEntry(e) {
     const w = document.getElementById(`nw-${e.id}`);
     w.classList.remove('viewing');
     w.classList.add('editing');
-    scrollWrapIntoView(w);
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
   });
@@ -317,14 +306,12 @@ function buildEntry(e) {
     w.classList.remove('editing');
   });
 
-  // Hover: expand notes view
+  // Hover: reveal read-only notes view
   card.addEventListener('mouseenter', () => {
-    const w = document.getElementById(`nw-${e.id}`);
+    const w     = document.getElementById(`nw-${e.id}`);
     const entry = data.entries.find(x => x.id === e.id);
     if (!w.classList.contains('editing') && entry?.notes?.trim()) {
-      populateNotesView(view, entry);
       w.classList.add('viewing');
-      scrollWrapIntoView(w);
     }
   });
   card.addEventListener('mouseleave', () => {
@@ -339,8 +326,5 @@ function buildEntry(e) {
 
 document.getElementById('btnClose').addEventListener('click', () => window.api.hideWin());
 document.getElementById('btnAdd').addEventListener('click', addEntry);
-document.getElementById('list').addEventListener('scroll', () => {
-  document.querySelectorAll('.notes-wrap.viewing').forEach(w => w.classList.remove('viewing'));
-}, { passive: true });
 
 load();

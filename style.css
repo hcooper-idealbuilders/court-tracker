@@ -214,17 +214,11 @@ body {
 .notes-wrap {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-rows 0.2s ease;
 }
 .notes-wrap.viewing,
 .notes-wrap.editing { grid-template-rows: 1fr; }
-.notes-inner {
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-.notes-wrap.viewing .notes-inner,
-.notes-wrap.editing .notes-inner { opacity: 1; }
+.notes-inner { overflow: hidden; }
 
 /* ── Notes inline view (hover) ────────────────────────────────── */
 
