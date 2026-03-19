@@ -172,6 +172,20 @@ function updateLabelDim(id, court) {
   if (rightInp) rightInp.classList.toggle('inactive', court === 'left');
 }
 
+// After the expand animation settles, scroll the list just enough to
+// reveal the full wrap if it overflowed the bottom of the container.
+function scrollWrapIntoView(w) {
+  setTimeout(() => {
+    if (!w.classList.contains('viewing') && !w.classList.contains('editing')) return;
+    const list  = document.getElementById('list');
+    const wRect = w.getBoundingClientRect();
+    const lRect = list.getBoundingClientRect();
+    if (wRect.bottom > lRect.bottom) {
+      list.scrollBy({ top: wRect.bottom - lRect.bottom + 8, behavior: 'smooth' });
+    }
+  }, 240);
+}
+
 /* ── Rendering ────────────────────────────────────────────────── */
 
 function render() {
@@ -290,6 +304,7 @@ function buildEntry(e) {
     const w = document.getElementById(`nw-${e.id}`);
     w.classList.remove('viewing');
     w.classList.add('editing');
+    scrollWrapIntoView(w);
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
   });
@@ -309,6 +324,7 @@ function buildEntry(e) {
     if (!w.classList.contains('editing') && entry?.notes?.trim()) {
       populateNotesView(view, entry);
       w.classList.add('viewing');
+      scrollWrapIntoView(w);
     }
   });
   card.addEventListener('mouseleave', () => {
